@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+ import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:geocoder/geocoder.dart';
 import 'package:geolocator/geolocator.dart';
@@ -7,13 +7,14 @@ import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sms/sms.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:tslm/Selection/analysis.dart';
 import 'dart:async';
 import 'package:tslm/Size/size.dart';
 import 'package:tslm/model/user.dart';
 import 'package:tslm/rest_api/rest_api.dart';
 import 'package:tslm/sqflite/dbhelper.dart';
 import 'package:tslm/sqflite/sqlmode.dart';
-import 'package:location_permissions/location_permissions.dart';
+import 'package:http/http.dart' as http;
 
 class Test1 extends StatefulWidget {
   final name;
@@ -175,7 +176,7 @@ class _Test1State extends State<Test1> {
                           ),
                           Positioned(
                             child: StreamBuilder(
-                              stream: Stream.periodic(Duration(seconds: 1))
+                              stream: Stream.periodic(Duration(seconds: 30))
                                   .asyncMap((i) => _getReading()),
                               builder: (context, snapshot) {
                                 if (snapshot.data == null) {
@@ -191,49 +192,64 @@ class _Test1State extends State<Test1> {
                                                   Color(0xfff27186))),
                                     ),
                                   );
-                                }
-                                // } else if (snapshot.data.heartbeat > 30) {
-                                //   Dialogs.showLoadingDialog(context, _keyLoader,
-                                //           'details', 1, true)
-                                //       .catchError((e) {
-                                //     print(e);
-                                //   });
-                                //   return Padding(
-                                //       padding: EdgeInsets.only(
-                                //           left: _width * 70, top: _height - 4),
-                                //       child: CircularPercentIndicator(
-                                //         radius: 40.0,
-                                //         lineWidth: 4.0,
-                                //         percent: 1,
-                                //         center: new Icon(
-                                //           Icons.warning,
-                                //           color: Color(0xfff27186),
-                                //           size: 18,
-                                //         ),
-                                //         progressColor: Color(0xfff27186),
-                                //       ));
-                                // } else if (snapshot.data.heartbeat <100) {
-                                //   Dialogs.showLoadingDialog(context, _keyLoader,
-                                //           'details', 1, true)
-                                //       .catchError((e) {
-                                //     print(e);
-                                //   });
-                                //   return Padding(
-                                //       padding: EdgeInsets.only(
-                                //           left: _width * 70, top: _height - 4),
-                                //       child: CircularPercentIndicator(
-                                //         radius: 40.0,
-                                //         lineWidth: 4.0,
-                                //         percent: 1,
-                                //         center: new Icon(
-                                //           Icons.warning,
-                                //           color: Colors.yellow[600],
-                                //           size: 18,
-                                //         ),
-                                //         progressColor: Colors.yellow[600],
-                                //       ));
-                                // }
-                                else
+                                } else if (snapshot.data.heartbeat == 40) {
+                                  return Padding(
+                                      padding: EdgeInsets.only(
+                                          left: _width * 70, top: _height - 4),
+                                      child: CircularPercentIndicator(
+                                        radius: 40.0,
+                                        lineWidth: 4.0,
+                                        percent: snapshot.data.heartbeat / 100,
+                                        center: Text(
+                                            "${snapshot.data.heartbeat}",
+                                            style: TextStyle(
+                                                color: Colors.yellow[800])),
+                                        progressColor: Colors.yellow[800],
+                                      ));
+                                } else if (snapshot.data.heartbeat < 40) {
+                                  return Padding(
+                                      padding: EdgeInsets.only(
+                                          left: _width * 70, top: _height - 4),
+                                      child: CircularPercentIndicator(
+                                        radius: 40.0,
+                                        lineWidth: 4.0,
+                                        percent: snapshot.data.heartbeat / 100,
+                                        center: Text(
+                                            "${snapshot.data.heartbeat}",
+                                            style: TextStyle(
+                                                color: Colors.red[800])),
+                                        progressColor: Colors.red[800],
+                                      ));
+                                } else if (snapshot.data.heartbeat == 100) {
+                                  return Padding(
+                                      padding: EdgeInsets.only(
+                                          left: _width * 70, top: _height - 4),
+                                      child: CircularPercentIndicator(
+                                        radius: 40.0,
+                                        lineWidth: 4.0,
+                                        percent: 1,
+                                        center: Text(
+                                            "${snapshot.data.heartbeat}",
+                                            style: TextStyle(
+                                                color: Colors.yellow[800])),
+                                        progressColor: Colors.yellow[800],
+                                      ));
+                                } else if (snapshot.data.heartbeat > 100) {
+                                  return Padding(
+                                      padding: EdgeInsets.only(
+                                          left: _width * 70, top: _height - 4),
+                                      child: CircularPercentIndicator(
+                                        radius: 40.0,
+                                        lineWidth: 4.0,
+                                        percent: 1,
+                                        center: new Icon(
+                                          Icons.warning,
+                                          color: Colors.red[600],
+                                          size: 18,
+                                        ),
+                                        progressColor: Colors.red[600],
+                                      ));
+                                }else
                                   //getdata();
                                   //  _readingHistory();
                                   return Padding(
@@ -258,14 +274,15 @@ class _Test1State extends State<Test1> {
                     height: _height,
                   ),
                   Container(
-                    width: _width * 60,
+                    width: _width * 40,
                     child: RaisedButton(
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10)),
                         onPressed: () {
-                          _saveDataToHistory();
+                          // _saveDataToHistory();
+                          checkValue();
                         },
-                        child: Text('Save value',
+                        child: Text('Check',
                             style: TextStyle(color: Colors.white)),
                         color: Color(0xfff27186)),
                   ),
@@ -284,59 +301,113 @@ class _Test1State extends State<Test1> {
                     height: _height * 7,
                   ),
                   Container(
-                    width: 400,
-                    height: 300,
-                    child: DefaultTabController(
-                        length: 2,
-                        child: Scaffold(
-                          backgroundColor: Color(0xffe8eff7),
-                          appBar: PreferredSize(
-                            preferredSize: Size.fromHeight(17),
-                            child: TabBar(
-                                unselectedLabelColor: Color(0xfff27186),
-                                indicatorSize: TabBarIndicatorSize.label,
-                                indicator: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(50),
-                                    color: Colors.white),
-                                tabs: [
-                                  Tab(
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(50),
-                                          border: Border.all(
-                                              color: Colors.white, width: 1)),
-                                      child: Align(
-                                        alignment: Alignment.center,
-                                        child: Text("Heart Rate",
-                                            style: TextStyle(
-                                                color: Color(0xfff27186))),
-                                      ),
-                                    ),
-                                  ),
-                                  Tab(
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(50),
-                                          border: Border.all(
-                                              color: Colors.white, width: 1)),
-                                      child: Align(
-                                        alignment: Alignment.center,
-                                        child: Text("Analsys",
-                                            style: TextStyle(
-                                                color: Color(0xfff27186))),
-                                      ),
-                                    ),
-                                  ),
-                                ]),
+                    child: Column(
+                      children: <Widget>[
+                        Text('About' , style: TextStyle(fontSize: 22 ),),
+                        SizedBox(height: 10,),
+                        Container(
+                          child: Text(
+                            'sdasdadasdasdasdasdas'
                           ),
-                          body: TabBarView(children: [
-                            Center(child: Text('Nothing to show')),
-                            Center(child: Text('Nothing to show')),
-                          ]),
-                        )),
+                        ),
+                         Container(
+                    width: _width * 60,
+                    child: RaisedButton(
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10)),
+                        onPressed: () {
+                          // _saveDataToHistory();
+                          Navigator.push(context, MaterialPageRoute(builder: (context)=>Analysis()));
+                        },
+                        child: Text('Analysis',
+                            style: TextStyle(color: Colors.white)),
+                        color: Color(0xfff27186)),
+                  ),
+                      ],
+                    ),
                   )
+                  // Container(
+                  //   width: 400,
+                  //   height: 300,
+                  //   child: DefaultTabController(
+                  //       length: 2,
+                  //       child: Scaffold(
+                  //         backgroundColor: Color(0xffe8eff7),
+                  //         appBar: PreferredSize(
+                  //           preferredSize: Size.fromHeight(17),
+                  //           child: TabBar(
+                  //               unselectedLabelColor: Color(0xfff27186),
+                  //               indicatorSize: TabBarIndicatorSize.label,
+                  //               indicator: BoxDecoration(
+                  //                   borderRadius: BorderRadius.circular(50),
+                  //                   color: Colors.white),
+                  //               tabs: [
+                  //                 Tab(
+                  //                   child: Container(
+                  //                     decoration: BoxDecoration(
+                  //                         borderRadius:
+                  //                             BorderRadius.circular(50),
+                  //                         border: Border.all(
+                  //                             color: Colors.white, width: 1)),
+                  //                     child: Align(
+                  //                       alignment: Alignment.center,
+                  //                       child: Text("Heart Rate",
+                  //                           style: TextStyle(
+                  //                               color: Color(0xfff27186))),
+                  //                     ),
+                  //                   ),
+                  //                 ),
+                  //                 Tab(
+                  //                   child: Container(
+                  //                     decoration: BoxDecoration(
+                  //                         borderRadius:
+                  //                             BorderRadius.circular(50),
+                  //                         border: Border.all(
+                  //                             color: Colors.white, width: 1)),
+                  //                     child: Align(
+                  //                       alignment: Alignment.center,
+                  //                       child: Text("Analsys",
+                  //                           style: TextStyle(
+                  //                               color: Color(0xfff27186))),
+                  //                     ),
+                  //                   ),
+                  //                 ),
+                  //               ]),
+                  //         ),
+                  //         body: TabBarView(children: [
+
+                            
+                  //            FutureBuilder(
+                  //              future: readingHistory(),
+                  //              builder: (BuildContext context , AsyncSnapshot snapshot){
+                  //                if(snapshot.data == null){
+                  //                  return Center(
+                  //                    child: Container(
+                  //                      height:33,
+                  //                      width:33,
+                  //                      child: CircularProgressIndicator(),
+                  //                    ),
+                  //                  );
+                  //                }
+                  //                else if(snapshot.data.last.heartbeat - snapshot.data[snapshot.data.length-2].heartbeat <= 10  && snapshot.data.last.heartbeat - snapshot.data[snapshot.data.length-2].heartbeat  >= 1){
+                  //                  return Text('normal normal'); 
+                  //                }
+                  //                else if(snapshot.data.last.heartbeat == snapshot.data[snapshot.data.length-2].heartbeat){
+                  //                  print(snapshot.data.last.heartbeat);
+                  //                  print( snapshot.data[snapshot.data.length-2].heartbeat); 
+                  //                  return Text('normal');
+                  //                }
+                                 
+                  //                else{
+                  //                  return Text('normalsassas');
+                  //                }
+                  //              },
+                  //            ),
+                  //           //Center(child: Text('Nothing to show')),
+                  //           Center(child: Text('Nothing to show')),
+                  //         ]), 
+                  //       )),
+                  // )
                 ],
               ),
             ),
@@ -347,30 +418,87 @@ class _Test1State extends State<Test1> {
   }
 
   Future<User> _getReading() async {
-    // print('ll');
     final response =
         await CallApi().getData('/user/' + '5ec2db1a80c9a300041a8113/');
     final body = json.decode(response.body);
-
+    var heartRate = body["User"]["heartBeat"];
+    var data = {"heart_Beat": heartRate};
+    await CallApi().postData(data, '/user/history/' + '${userdata['_id']}/');
     return User.fromJson(body);
   }
 
-  _saveDataToHistory() async {
-    Dialogs.showLoadingDialog(context, _keyLoader, 'Saving....', 0, false);
-    final response =
-        await CallApi().getData('/user/' + '5ec2db1a80c9a300041a8113/');
-    final body = json.decode(response.body);
-    num heartRate = body["User"]["heartBeat"];
-    num _new1;
-    setState(() {
-      _new1 = heartRate;
-    });
-    print(_new1);
-    var data = {"heart_Beat": _new1};
-    await CallApi().postData(data, '/user/history/' + '${userdata['_id']}/');
-    Navigator.of(_keyLoader.currentContext, rootNavigator: true).pop();
-    _showDialoug('data successfully saved');
+  // Future saveData() async {
+  //   await _getReading().then((value) async {
+  //     num _data;
+
+  //     setState(() {
+  //       _data = value.heartbeat;
+  //     });
+
+  //     var data = {"heart_Beat": _data};
+
+  //     await CallApi().postData(data, '/user/history/' + '${userdata['_id']}/');
+  //     Navigator.of(_keyLoader.currentContext, rootNavigator: true).pop();
+  //     return _data;
+  //   });
+  // }
+
+
+    Future<List<UserHistory>> readingHistory() async {
+    var data = await http.get("https://heartbeatsproject.herokuapp.com/user/" +
+        "${userdata['_id']}/");
+    var jsonData = json.decode(data.body);
+    List<UserHistory> users = [];
+    var newJsonData = jsonData['User']['user_history'];
+    for (var u in newJsonData) {
+      UserHistory user = UserHistory(u['heart_Beat'], u['date']);
+      users.add(user);
+    }
+          var beforelast =users[users.length-2].heartbeat;
+      var last = users.last;
+            
+      if(beforelast == last){
+
+      }
+    // print(users.last.heartbeat);
+    return users;
   }
+
+  readingAnalysis()async{
+    await readingHistory().then((users){
+      var beforelast =users[users.length-2].heartbeat;
+    
+    });
+  }
+
+  checkValue() async {
+    await _getReading().then((value) {
+      if (value.heartbeat <= 40) {
+        return _showDialoug('low');
+      } else if (value.heartbeat >= 100) {
+        return _showDialoug('high');
+      } else {
+        _showDialoug('Normal');
+      }
+    });
+  }
+
+  // _saveDataToHistory() async {
+  //   Dialogs.showLoadingDialog(context, _keyLoader, 'Saving....', 0, false);
+  //   final response =
+  //       await CallApi().getData('/user/' + '5ec2db1a80c9a300041a8113/');
+  //   final body = json.decode(response.body);
+  //   num heartRate = body["User"]["heartBeat"];
+  //   num _new1;
+  //   setState(() {
+  //     _new1 = heartRate;
+  //   });
+  //   print(_new1);
+  //   var data = {"heart_Beat": _new1};
+  //   await CallApi().postData(data, '/user/history/' + '${userdata['_id']}/');
+  //   Navigator.of(_keyLoader.currentContext, rootNavigator: true).pop();
+  //   _showDialoug('data successfully saved');
+  // }
 
   void updateListView() {
     final Future<Database> dbFuture = databaseHelper.initializeDatabase();
@@ -388,27 +516,30 @@ class _Test1State extends State<Test1> {
   _showDialoug(text) {
     showDialog(
         context: context,
-        builder: (context) {
+        builder: (dcontext) {
           Future.delayed(Duration(seconds: 2), () {
             Navigator.of(context).pop(true);
           });
-          return AlertDialog(
-            content: Container(
-                height: 45,
-                child: Center(
-                    child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    //SizedBox(width: 30),
-                    Text(text, style: TextStyle(color: Colors.black)),
-                    SizedBox(width: 5),
-                    Icon(
-                      Icons.done,
-                      color: Colors.black,
-                    )
-                  ],
-                ))),
+          return WillPopScope(
+            onWillPop: () async => true,
+            child: AlertDialog(
+              content: Container(
+                  height: 45,
+                  child: Center(
+                      child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      //SizedBox(width: 30),
+                      Text(text, style: TextStyle(color: Colors.black)),
+                      SizedBox(width: 5),
+                      // Icon(
+                      //   Icons.done,
+                      //   color: Colors.black,
+                      // )
+                    ],
+                  ))),
+            ),
           );
         });
   }

@@ -63,8 +63,8 @@ class _AboutUsTestState extends State<AboutUsTest> {
                             borderRadius: BorderRadius.circular(10)),
                         child: ListView(
                           children: <Widget>[
-                            //Text('daddasdadasdasdasdasdaddasdadasdasdasdasdaddasdadasdasdasdasdaddasdadasdasdasdasdaddasdadasdasdasdasdaddasdadasdasdasdasdaddasdadasdasdasdasdaddasdadasdasdasdasdaddasdadasdasdasdasdaddasdadasdasdasdasdaddasdadasdasdasdasdaddasdadasdasdasdas',
-                            //style: TextStyle(color: Color(0xff3979b7))),
+                            Text('daddasdadasdasdasdasdaddasdadasdasdasdasdaddasdadasdasdasdasdaddasdadasdasdasdasdaddasdadasdasdasdasdaddasdadasdasdasdasdaddasdadasdasdasdasdaddasdadasdasdasdasdaddasdadasdasdasdasdaddasdadasdasdasdasdaddasdadasdasdasdasdaddasdadasdasdasdas',
+                            style: TextStyle(color: Color(0xff3979b7))),
                           ],
                         )),
                   )

@@ -293,7 +293,8 @@ class _ProgilePageState extends State<ProgilePage> {
       UserHistory user = UserHistory(u['heart_Beat'], u['date']);
       users.add(user);
     }
-    // print(users.last.heartbeat);
+     print(users.last.heartbeat);
+     print(users[users.length-2].heartbeat); 
     return users;
   }
 
